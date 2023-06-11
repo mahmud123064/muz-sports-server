@@ -36,7 +36,7 @@ async function run() {
         await client.connect();
 
         const classCollection = client.db("muzSports").collection("classes")
-        const selectedClassCollection = client.db("muzSports").collection("selectedClasses")
+        const selectedClassCollection = client.db("muzSports").collection("selectedclasses")
 
         /////////////////////////// Classes ////////////////////
 
@@ -49,8 +49,14 @@ async function run() {
 
         // selected Class collection
 
-        app.post('/selectedClasses', async(req, res)=> {
+        app.get('/selectedclasses', async(req, res)=> {    
+        const result = await selectedClassCollection.find({email:req.query.email}).toArray()
+            res.send(result)
+        })
+
+        app.post('/selectedclasses', async(req, res)=> {
             const item = req.body;
+            console.log(item);
             const result = await selectedClassCollection.insertOne(item)
             res.send(result)
         })
