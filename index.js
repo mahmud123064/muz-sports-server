@@ -37,6 +37,17 @@ async function run() {
 
         const classCollection = client.db("muzSports").collection("classes")
         const selectedClassCollection = client.db("muzSports").collection("selectedclasses")
+        const usersCollection = client.db("muzSports").collection("users")
+
+        //////////////////////Users API /////////////////////
+
+        app.post('/users', async(req, res)=>{
+            const user = req.body;
+            const result = await usersCollection.insertOne(user);
+            res.send(result)
+        })
+
+
 
         /////////////////////////// Classes ////////////////////
 
@@ -49,21 +60,21 @@ async function run() {
 
         // selected Class collection
 
-        app.get('/selectedclasses', async(req, res)=> {    
-        const result = await selectedClassCollection.find({email:req.query.email}).toArray()
+        app.get('/selectedclasses', async (req, res) => {
+            const result = await selectedClassCollection.find({ email: req.query.email }).toArray()
             res.send(result)
         })
 
-        app.post('/selectedclasses', async(req, res)=> {
+        app.post('/selectedclasses', async (req, res) => {
             const item = req.body;
             console.log(item);
             const result = await selectedClassCollection.insertOne(item)
             res.send(result)
         })
 
-        app.delete('/selectedclasses/:id', async(req, res)=>{
+        app.delete('/selectedclasses/:id', async (req, res) => {
             const id = req.params.id;
-            const query = { _id: new ObjectId(id) } 
+            const query = { _id: new ObjectId(id) }
             const result = await selectedClassCollection.deleteOne(query);
             res.send(result)
 
