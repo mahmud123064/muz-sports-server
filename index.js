@@ -3,6 +3,7 @@ const app = express();
 const cors = require("cors")
 require('dotenv').config()
 const port = process.env.PORT || 5000;
+const jwt = require('jsonwebtoken');
 
 // Middleware
 
@@ -39,6 +40,15 @@ async function run() {
         const selectedClassCollection = client.db("muzSports").collection("selectedclasses")
         const usersCollection = client.db("muzSports").collection("users")
 
+
+        //////////////JWT //////////////////////////
+
+        app.post('/jwt', (req,res)=> {
+            const user = req.body;
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRECT,  { expiresIn: '1h' })
+            res.send({ token })
+        })
+
         //////////////////////Users API /////////////////////
 
         app.get('/users', async (req, res) => {
@@ -56,7 +66,6 @@ async function run() {
             const result = await usersCollection.insertOne(user);
             res.send(result)
         })
-
 
         app.patch('/users/admin/:id', async (req, res) => {
             const id = req.params.id;
