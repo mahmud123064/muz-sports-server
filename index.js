@@ -10,6 +10,22 @@ const jwt = require('jsonwebtoken');
 app.use(cors());
 app.use(express.json());
 
+const verifyJWT = (req, res, next) => {
+    const authorization = req.headers.authorization;
+    if (!authorization) {
+        return res.status(401).send({ error: true, message: 'unauthorized access' })
+    }
+    const token = authorization.split(' ')[1];
+    jwt.verify(token, process.env.ACCESS_TOKEN_SECRECT, (err, decoded) => {
+
+        if (err) {
+            return res.status(401).send({ error: true, message: 'unauthorized access' })
+        }
+        req.decoded = decoded;
+        next()
+    })
+}
+
 
 app.get('/', (req, res) => {
     res.send("MUZ Sports is running")
@@ -43,9 +59,9 @@ async function run() {
 
         //////////////JWT //////////////////////////
 
-        app.post('/jwt', (req,res)=> {
+        app.post('/jwt', (req, res) => {
             const user = req.body;
-            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRECT,  { expiresIn: '1h' })
+            const token = jwt.sign(user, process.env.ACCESS_TOKEN_SECRECT, { expiresIn: '1h' })
             res.send({ token })
         })
 
@@ -78,10 +94,10 @@ async function run() {
             const result = await usersCollection.updateOne(filter, updateDoc)
             res.send(result)
         })
-        
+
         /////////////////// Instructor  //////////////////
 
-          app.patch('/users/instructor/:id', async (req, res) => {
+        app.patch('/users/instructor/:id', async (req, res) => {
             const id = req.params.id;
             const filter = { _id: new ObjectId(id) }
             const updateDoc = {
@@ -104,8 +120,28 @@ async function run() {
 
         // selected Class collection
 
-        app.get('/selectedclasses', async (req, res) => {
-            const result = await selectedClassCollection.find({ email: req.query.email }).toArray()
+        // app.get('/selectedclasses', async (req, res) => {
+        //     const result = await selectedClassCollection.find({ email: req.query.email }).toArray()
+        //     res.send(result)
+        // })
+
+
+        ///////////// verifyJWT /////////////////// eta use korle error aschilo 
+
+        app.get('/selectedclasses', verifyJWT, async (req, res) => {
+            const email = req.query.email;
+
+            if (!email) {
+                res.send([])
+            }
+            // etar jonno error aschilo  
+            const decodedEmail = req.decoded.email;
+            if (email !== decodedEmail) {
+                return res.status(403).send({ error: true, message: 'forbidden access' })
+            }
+            ///////////////
+            const query = { email: email };
+            const result = await selectedClassCollection.find(query).toArray();
             res.send(result)
         })
 
